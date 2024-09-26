@@ -1,0 +1,1261 @@
+<html><head><base href="https://cdn.jsdelivr.net/"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Complete Quran Application with Pashto Translation and Offline Support</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<style>
+  @font-face {
+    font-family: 'Segoe Print';
+    src: url('https://db.onlinewebfonts.com/t/936930083bb61d1e64003a50fe63c25f.woff2') format('woff2');
+  }
+
+  body {
+    font-family: 'Noto Naskh Arabic', 'Amiri', 'Noto Sans Pashto', Arial, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    margin: 0;
+    padding: 20px;
+    color: #2c3e50;
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+  @media screen and (max-width: 600px) {
+    body {
+      padding: 10px;
+    }
+    
+    .quran-app {
+      padding: 1rem;
+    }
+    
+    h1 {
+      font-size: 2rem;
+    }
+    
+    .toolbar {
+      flex-direction: column;
+    }
+    
+    .toolbar button {
+      margin-bottom: 10px;
+    }
+    
+    #surahList, #searchResults, #profileList, #juzList {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+    
+    .modal-content {
+      width: 95%;
+      margin: 2% auto;
+    }
+    
+    .ayah-text {
+      font-size: 1.2rem;
+    }
+  }
+  .quran-app {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+  h1 {
+    text-align: center;
+    color: #3498db;
+    margin-bottom: 1.5rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  }
+  .toolbar {
+    position: fixed;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to right, #3498db, #2980b9);
+    transition: top 0.3s ease;
+    z-index: 1001;
+    padding: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  .toolbar.visible {
+    top: 0;
+  }
+  .toggle-toolbar {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1002;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+  }
+  .toggle-toolbar:hover {
+    background-color: #2980b9;
+    transform: scale(1.1);
+  }
+  button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(to right, #3498db, #2980b9);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  button:hover {
+    background: linear-gradient(to right, #2980b9, #3498db);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+  }
+  button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+  }
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+  }
+  .modal-content {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: modalFadeIn 0.5s;
+  }
+  @keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .close {
+    color: #3498db;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+  .close:hover,
+  .close:focus {
+    color: #2c3e50;
+  }
+  #surahList, #searchResults, #profileList, #juzList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 1.5rem;
+  }
+  .search-result, .profile-button, .juz-button {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 1rem;
+    border-radius: 15px;
+    transition: all 0.3s;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  .search-result:hover, .profile-button:hover, .juz-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+  }
+  .full-screen-surah {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 2rem;
+  }
+  .ayah {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+  .ayah:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+  }
+  .ayah-number {
+    font-weight: bold;
+    color: #3498db;
+    margin-bottom: 0.5rem;
+  }
+  .ayah-text {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .translation {
+    font-style: italic;
+    color: #7f8c8d;
+  }
+  #audioPlayer {
+    width: 100%;
+    margin-top: 1rem;
+    border-radius: 10px;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  #downloadButton:hover, #downloadAudioButton:hover {
+    animation: pulse 1s infinite;
+  }
+  #splashScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #3498db;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+  }
+
+  .splashContent {
+    font-family: 'Segoe Print', cursive;
+    font-size: 24px;
+    color: white;
+    text-align: center;
+    animation: fadeIn 2s ease-in-out, float 3s ease-in-out infinite;
+  }
+
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+</style>
+</head>
+<body>
+  <div id="splashScreen">
+    <div class="splashContent">Developed by Abdulahad Ahadi</div>
+  </div>
+  <div class="quran-app">
+    <h1>Quran Pashto</h1>
+    <button id="toggleToolbar" class="toggle-toolbar"><i class="fas fa-bars"></i></button>
+    <div class="toolbar">
+      <button id="settingsButton"><i class="fas fa-cog button-icon"></i> Settings</button>
+      <button id="prophetInfoButton"><i class="fas fa-info-circle button-icon"></i> Prophet Muhammad</button>
+      <button id="searchButton"><i class="fas fa-search button-icon"></i> Search Quran</button>
+      <button id="bookmarksButton"><i class="fas fa-bookmark button-icon"></i> Bookmarks</button>
+      <button id="quranInfoButton"><i class="fas fa-book button-icon"></i> Quran Info</button>
+    </div>
+    <div class="top-controls">
+      <div class="surah-selector">
+        <button id="surahButton"><i class="fas fa-book-open button-icon"></i> Select Surah</button>
+      </div>
+      <div class="juz-selector">
+        <button id="juzButton"><i class="fas fa-book button-icon"></i> Select Juz</button>
+      </div>
+      <button id="downloadButton"><i class="fas fa-download button-icon"></i> Download Offline</button>
+    </div>
+    <div id="offlineStatusDiv"></div>
+    <div id="loadingIndicator" style="display: none;">Loading...</div>
+    <audio id="audioPlayer" class="audio-player" controls="">
+      <source src="" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+  </div>
+
+  <div id="fullScreenSurah" class="full-screen-surah">
+    <button id="homeButton" class="home-button"><i class="fas fa-home"></i></button>
+    <div class="full-screen-controls">
+      <button id="downloadAudioButton"><i class="fas fa-file-audio button-icon"></i> Download Surah Audio</button>
+      <button id="playSurahButton"><i class="fas fa-play button-icon"></i> Play Entire Surah</button>
+    </div>
+    <div id="fullScreenContent"></div>
+    <div class="full-screen-page-controls">
+      <button id="fullScreenPrevPage" class="nav-button"><i class="fas fa-chevron-left"></i> Previous</button>
+      <button id="fullScreenNextPage" class="nav-button"><i class="fas fa-chevron-right"></i> Next</button>
+    </div>
+  </div>
+
+  <div id="profileModal" class="modal">
+    <div class="modal-content">
+      <h2>Select or Create Profile</h2>
+      <div id="profileList"></div>
+      <div class="profile-input">
+        <input type="text" id="newProfileInput" placeholder="New profile name">
+        <button id="createProfileButton">Create Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="surahModal" class="modal">
+    <div class="modal-content">
+      <span class="close">×</span>
+      <h2>Select a Surah</h2>
+      <div id="surahList"></div>
+    </div>
+  </div>
+
+  <div id="juzModal" class="modal">
+    <div class="modal-content">
+      <span class="close">×</span>
+      <h2>Select a Juz</h2>
+      <div id="juzList"></div>
+    </div>
+  </div>
+
+  <div id="searchModal" class="modal">
+    <div class="modal-content">
+      <span class="close">×</span>
+      <h2>Search Quran</h2>
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search Quran">
+      </div>
+      <div id="searchResults"></div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">×</span>
+      <h2>Settings</h2>
+      <div class="settings-option">
+        <label for="themeSelect">Theme:</label>
+        <select id="themeSelect">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="sepia">Sepia</option>
+        </select>
+      </div>
+      <div class="settings-option">
+        <label for="fontSizeSelect">Font Size:</label>
+        <select id="fontSizeSelect">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </div>
+      <div class="settings-option">
+        <label for="arabicFontSizeSelect">Arabic Font Size:</label>
+        <select id="arabicFontSizeSelect">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="prophetInfoModal" class="modal">
+    <div class="modal-content">
+      <span class="close">×</span>
+      <h2>Prophet Muhammad (Peace be upon Him)</h2>
+      <div class="prophet-info">
+        <p><strong>Birth:</strong> 570 CE in Mecca</p>
+        <p><strong>Death:</strong> 632 CE in Medina</p>
+        <p><strong>Full Name:</strong> Muhammad ibn Abdullah</p>
+        <p><strong>Lineage:</strong> Descendant of Prophet Ismail, son of Prophet Ibrahim</p>
+        <p><strong>Key Events:</strong></p>
+        <ul>
+          <li>Received first revelation at age 40 in 610 CE</li>
+          <li>Migrated to Medina (Hijra) in 622 CE</li>
+          <li>Returned to Mecca in 629 CE</li>
+          <li>Farewell Pilgrimage in 632 CE</li>
+        </ul>
+        <p>Prophet Muhammad (peace be upon him) is the last messenger of Allah and the seal of the prophets. He received the revelation of the Holy Quran over a period of 23 years. His life serves as an example for all Muslims, embodying the teachings of Islam in practice.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="bookmarksModal" class="modal">
+    <div class="modal-content">
+      <span class="close">×</span>
+      <h2>Bookmarks</h2>
+      <div id="bookmarksList"></div>
+    </div>
+  </div>
+
+  <div id="quranInfoModal" class="modal">
+    <div class="modal-content">
+      <span class="close">×</span>
+      <h2>Quran Information</h2>
+      <div id="quranInfoContent" style="max-height: 80vh; overflow-y: auto;"></div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script>
+  const settingsButton = document.getElementById('settingsButton');
+  const settingsModal = document.getElementById('settingsModal');
+  const themeSelect = document.getElementById('themeSelect');
+  const fontSizeSelect = document.getElementById('fontSizeSelect');
+  const arabicFontSizeSelect = document.getElementById('arabicFontSizeSelect');
+
+  const prophetInfoButton = document.getElementById('prophetInfoButton');
+  const prophetInfoModal = document.getElementById('prophetInfoModal');
+
+  const surahButton = document.getElementById('surahButton');
+  const juzButton = document.getElementById('juzButton');
+  const searchButton = document.getElementById('searchButton');
+  const searchInput = document.getElementById('searchInput');
+  const searchModal = document.getElementById('searchModal');
+  const searchResults = document.getElementById('searchResults');
+  const surahModal = document.getElementById('surahModal');
+  const profileModal = document.getElementById('profileModal');
+  const bookmarksButton = document.getElementById('bookmarksButton');
+  const bookmarksModal = document.getElementById('bookmarksModal');
+  const bookmarksList = document.getElementById('bookmarksList');
+  const profileList = document.getElementById('profileList');
+  const newProfileInput = document.getElementById('newProfileInput');
+  const createProfileButton = document.getElementById('createProfileButton');
+  const audioPlayer = document.getElementById('audioPlayer');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const downloadButton = document.getElementById('downloadButton');
+  const offlineStatusDiv = document.getElementById('offlineStatusDiv');
+  const downloadAudioButton = document.getElementById('downloadAudioButton');
+  const playSurahButton = document.getElementById('playSurahButton');
+  const toggleToolbarBtn = document.getElementById('toggleToolbar');
+  const toolbar = document.querySelector('.toolbar');
+  const fullScreenSurah = document.getElementById('fullScreenSurah');
+  const fullScreenContent = document.getElementById('fullScreenContent');
+  const homeButton = document.getElementById('homeButton');
+  const fullScreenPrevPage = document.getElementById('fullScreenPrevPage');
+  const fullScreenNextPage = document.getElementById('fullScreenNextPage');
+
+  const quranInfoButton = document.getElementById('quranInfoButton');
+  const quranInfoModal = document.getElementById('quranInfoModal');
+  const quranInfoContent = document.getElementById('quranInfoContent');
+
+  const juzModal = document.getElementById('juzModal');
+  const juzList = document.getElementById('juzList');
+
+  let currentProfile = null;
+  let audioQueue = [];
+  let currentAudioIndex = 0;
+
+  let currentSurah = 1;
+  let currentPage = 1;
+  let totalPages = 1;
+  const pageSize = 10;
+  let db;
+
+  const quranInfo = `
+    <h3>Introduction to the Quran</h3>
+    <p>The Quran is the central religious text of Islam, believed by Muslims to be a revelation from God (Allah). It is widely regarded as the finest work in classical Arabic literature. The Quran is divided into chapters (surah in Arabic), which are then divided into verses (ayah).</p>
+
+    <h3>Structure and Content</h3>
+    <p>The Quran consists of 114 chapters of varying lengths, with a total of 6,236 verses. The chapters are not arranged chronologically but roughly in order of decreasing length. The Quran is also divided into 30 equal parts, known as juz', which makes it easy for Muslims to read the Quran in a month.</p>
+
+    <h3>Revelation</h3>
+    <p>Muslims believe that the Quran was verbally revealed by God to the final Prophet Muhammad through the archangel Gabriel (Jibril), gradually over a period of approximately 23 years, beginning on 22 December 609 CE, when Muhammad was 40, and concluding in 632, the year of his death.</p>
+
+    <h3>Compilation</h3>
+    <p>The Quran was compiled into a book format shortly after Muhammad's death under the guidance of the first caliph Abu Bakr and at the suggestion of his future successor Umar. Hafsa, Muhammad's widow and Umar's daughter, was entrusted with that Quranic text after the second caliph Umar died.</p>
+
+    <h3>Themes</h3>
+    <p>The Quran discusses various topics including God, prophets, angels, Satan, man's relationship with God, and guidelines for living. It provides directives for a just society, proper human conduct, and an equitable economic system.</p>
+
+    <h3>Literary Style</h3>
+    <p>The Quran is considered the pinnacle of Arabic literature and is renowned for its eloquence and poetic nature. It employs various literary devices such as alliteration, assonance, and rhetorical questions to convey its message effectively.</p>
+
+    <h3>Interpretation</h3>
+    <p>The science of Quranic interpretation is called tafsir. Over the centuries, various schools of tafsir have developed, each with its own methodology and approach to understanding the Quranic text.</p>
+
+    <h3>Memorization</h3>
+    <p>Many Muslims memorize the entire Quran, a practice that has been ongoing since its revelation. Those who have memorized the entire Quran are known as Hafiz.</p>
+
+    <h3>Translations</h3>
+    <p>While the Quran is most authentic in its original Arabic, it has been translated into many languages to make it accessible to non-Arabic speakers. However, translations are considered interpretations rather than the literal word of God.</p>
+
+    <h3>Influence</h3>
+    <p>The Quran has had a profound impact on literature, art, and culture in the Muslim world and beyond. Its teachings have shaped Islamic law, ethics, and spirituality.</p>
+  `;
+
+  quranInfoButton.onclick = () => {
+    quranInfoModal.style.display = 'block';
+    quranInfoContent.innerHTML = quranInfo;
+  };
+
+  const closeModals = () => {
+    surahModal.style.display = 'none';
+    searchModal.style.display = 'none';
+    settingsModal.style.display = 'none';
+    prophetInfoModal.style.display = 'none';
+    profileModal.style.display = 'none';
+    bookmarksModal.style.display = 'none';
+    quranInfoModal.style.display = 'none';
+    juzModal.style.display = 'none';
+  };
+
+  window.onclick = (event) => {
+    if (event.target == surahModal || event.target == searchModal || event.target == settingsModal || 
+        event.target == prophetInfoModal || event.target == profileModal || event.target == bookmarksModal || 
+        event.target == quranInfoModal || event.target == juzModal) {
+      closeModals();
+    }
+  };
+
+  document.querySelectorAll('.close').forEach(closeBtn => {
+    closeBtn.onclick = closeModals;
+  });
+
+  async function initDB() {
+    let dbVersion = 1;
+
+    const databases = await indexedDB.databases();
+    const existingDB = databases.find(db => db.name === 'QuranOfflineDB');
+
+    if (existingDB) {
+      dbVersion = existingDB.version + 1;
+    }
+
+    db = await idb.openDB('QuranOfflineDB', dbVersion, {
+      upgrade(db, oldVersion, newVersion, transaction) {
+        if (!db.objectStoreNames.contains('surahs')) {
+          db.createObjectStore('surahs');
+        }
+        if (!db.objectStoreNames.contains('translations')) {
+          db.createObjectStore('translations');
+        }
+        if (!db.objectStoreNames.contains('profiles')) {
+          db.createObjectStore('profiles');
+        }
+        if (!db.objectStoreNames.contains('bookmarks')) {
+          db.createObjectStore('bookmarks');
+        }
+        if (!db.objectStoreNames.contains('juzInfo')) {
+          db.createObjectStore('juzInfo');
+        }
+      },
+    });
+  }
+
+  async function loadProfiles() {
+    const profiles = await db.getAll('profiles') || [];
+    profileList.innerHTML = '';
+    profiles.forEach(profile => {
+      const button = document.createElement('button');
+      button.className = 'profile-button';
+      button.textContent = profile.name;
+      button.onclick = () => selectProfile(profile);
+      profileList.appendChild(button);
+    });
+  }
+
+  async function createProfile(name) {
+    const profile = { 
+      name, 
+      settings: { 
+        theme: 'light', 
+        fontSize: 'medium', 
+        arabicFontSize: 'medium' 
+      } 
+    };
+    await db.put('profiles', profile, name);
+    await loadProfiles();
+  }
+
+  function selectProfile(profile) {
+    currentProfile = profile;
+    profileModal.style.display = 'none';
+    applyTheme(profile.settings.theme);
+    applyFontSize(profile.settings.fontSize);
+    applyArabicFontSize(profile.settings.arabicFontSize || 'medium');
+    themeSelect.value = profile.settings.theme;
+    fontSizeSelect.value = profile.settings.fontSize;
+    arabicFontSizeSelect.value = profile.settings.arabicFontSize || 'medium';
+    displayBookmarks();
+  }
+
+  createProfileButton.onclick = () => {
+    const name = newProfileInput.value.trim();
+    if (name) {
+      createProfile(name);
+      newProfileInput.value = '';
+    }
+  };
+
+  async function loadSurahs() {
+    try {
+      let surahs;
+      if (navigator.onLine) {
+        const response = await axios.get('https://api.alquran.cloud/v1/surah');
+        surahs = response.data.data;
+        await db.put('surahs', surahs, 'list');
+      } else {
+        surahs = await db.get('surahs', 'list');
+      }
+
+      surahList.innerHTML = '';
+      surahs.forEach(surah => {
+        const button = document.createElement('button');
+        button.textContent = `${surah.number}. ${surah.englishName}`;
+        button.onclick = () => selectSurah(surah.number);
+        surahList.appendChild(button);
+      });
+    } catch (error) {
+      console.error('Error loading surahs:', error);
+    }
+  }
+
+  async function loadJuzInfo() {
+    try {
+      juzList.innerHTML = '';
+      const juzData = [
+        { number: 1, surahStart: 1, ayahStart: 1 },
+        { number: 2, surahStart: 2, ayahStart: 142 },
+        { number: 3, surahStart: 2, ayahStart: 253 },
+        { number: 4, surahStart: 3, ayahStart: 93 },
+        { number: 5, surahStart: 4, ayahStart: 24 },
+        { number: 6, surahStart: 4, ayahStart: 148 },
+        { number: 7, surahStart: 5, ayahStart: 82 },
+        { number: 8, surahStart: 6, ayahStart: 111 },
+        { number: 9, surahStart: 7, ayahStart: 88 },
+        { number: 10, surahStart: 8, ayahStart: 41 },
+        { number: 11, surahStart: 9, ayahStart: 93 },
+        { number: 12, surahStart: 11, ayahStart: 6 },
+        { number: 13, surahStart: 12, ayahStart: 53 },
+        { number: 14, surahStart: 15, ayahStart: 1 },
+        { number: 15, surahStart: 17, ayahStart: 1 },
+        { number: 16, surahStart: 18, ayahStart: 75 },
+        { number: 17, surahStart: 21, ayahStart: 1 },
+        { number: 18, surahStart: 23, ayahStart: 1 },
+        { number: 19, surahStart: 25, ayahStart: 21 },
+        { number: 20, surahStart: 27, ayahStart: 56 },
+        { number: 21, surahStart: 29, ayahStart: 46 },
+        { number: 22, surahStart: 33, ayahStart: 31 },
+        { number: 23, surahStart: 36, ayahStart: 28 },
+        { number: 24, surahStart: 39, ayahStart: 32 },
+        { number: 25, surahStart: 41, ayahStart: 47 },
+        { number: 26, surahStart: 46, ayahStart: 1 },
+        { number: 27, surahStart: 51, ayahStart: 31 },
+        { number: 28, surahStart: 58, ayahStart: 1 },
+        { number: 29, surahStart: 67, ayahStart: 1 },
+        { number: 30, surahStart: 78, ayahStart: 1 },
+      ];
+
+      juzData.forEach(juz => {
+        const button = document.createElement('button');
+        button.className = 'juz-button';
+        button.textContent = `Juz ${juz.number}`;
+        button.onclick = () => selectJuz(juz.number, juz.surahStart, juz.ayahStart);
+        juzList.appendChild(button);
+      });
+    } catch (error) {
+      console.error('Error loading Juz info:', error);
+    }
+  }
+
+  async function selectJuz(juzNumber, surahStart, ayahStart) {
+    try {
+      juzModal.style.display = 'none';
+      document.querySelector('.quran-app').style.display = 'none';
+      fullScreenSurah.style.display = 'block';
+      currentSurah = surahStart;
+      currentPage = Math.floor((ayahStart - 1) / pageSize) + 1;
+      await loadQuranContent(true);
+      updateFullScreenPageControls();
+    } catch (error) {
+      console.error('Error selecting Juz:', error);
+    }
+  }
+
+  async function selectSurah(number) {
+    currentSurah = number;
+    currentPage = 1;
+    surahButton.textContent = `Surah ${number}`;
+    surahModal.style.display = 'none';
+
+    document.querySelector('.quran-app').style.display = 'none';
+    fullScreenSurah.style.display = 'block';
+
+    loadQuranContent(true);
+  }
+
+  async function loadQuranContent(fullScreen = false) {
+    loadingIndicator.style.display = 'block';
+    const contentContainer = fullScreen ? fullScreenContent : document.createElement('div');
+    contentContainer.innerHTML = ''; // Clear previous content
+
+    try {
+      const startAyah = (currentPage - 1) * pageSize + 1;
+      const endAyah = currentPage * pageSize;
+
+      let arabicAyahs, englishAyahs, pashtoAyahs, audioAyahs;
+
+      if (navigator.onLine) {
+        const [arabicResponse, englishResponse, pashtoResponse, audioResponse] = await Promise.all([
+          axios.get(`https://api.alquran.cloud/v1/surah/${currentSurah}`),
+          axios.get(`https://api.alquran.cloud/v1/surah/${currentSurah}/en.asad`),
+          axios.get(`https://api.alquran.cloud/v1/surah/${currentSurah}/ps.abdulwali`),
+          axios.get(`https://api.alquran.cloud/v1/surah/${currentSurah}/ar.alafasy`)
+        ]);
+
+        arabicAyahs = arabicResponse.data.data.ayahs;
+        englishAyahs = englishResponse.data.data.ayahs;
+        pashtoAyahs = pashtoResponse.data.data.ayahs;
+        audioAyahs = audioResponse.data.data.ayahs;
+
+        await db.put('translations', { arabic: arabicAyahs, english: englishAyahs, pashto: pashtoAyahs, audio: audioAyahs }, `surah_${currentSurah}`);
+      } else {
+        const storedData = await db.get('translations', `surah_${currentSurah}`);
+        if (storedData) {
+          arabicAyahs = storedData.arabic;
+          englishAyahs = storedData.english;
+          pashtoAyahs = storedData.pashto;
+          audioAyahs = storedData.audio;
+        } else {
+          throw new Error('Surah not available offline');
+        }
+      }
+
+      totalPages = Math.ceil(arabicAyahs.length / pageSize);
+
+      audioQueue = audioAyahs.map(ayah => ayah.audio);
+
+      for (let i = startAyah - 1; i < Math.min(endAyah, arabicAyahs.length); i++) {
+        const ayahDiv = document.createElement('div');
+        ayahDiv.className = 'ayah';
+
+        const ayahNumber = document.createElement('div');
+        ayahNumber.className = 'ayah-number';
+        ayahNumber.textContent = `Ayah ${arabicAyahs[i].numberInSurah}`;
+        ayahDiv.appendChild(ayahNumber);
+
+        const arabicText = document.createElement('div');
+        arabicText.className = 'ayah-text';
+        arabicText.textContent = arabicAyahs[i].text;
+        ayahDiv.appendChild(arabicText);
+
+        const englishTranslation = document.createElement('div');
+        englishTranslation.className = 'translation english-translation';
+        englishTranslation.textContent = englishAyahs[i].text;
+        ayahDiv.appendChild(englishTranslation);
+
+        const pashtoTranslation = document.createElement('div');
+        pashtoTranslation.className = 'translation pashto-translation';
+        pashtoTranslation.textContent = pashtoAyahs[i].text;
+        ayahDiv.appendChild(pashtoTranslation);
+
+        const bookmarkButton = createBookmarkButton(currentSurah, arabicAyahs[i].numberInSurah);
+        bookmarkButton.dataset.key = `${currentSurah}:${arabicAyahs[i].numberInSurah}`;
+        ayahDiv.appendChild(bookmarkButton);
+
+        if (currentProfile) {
+          updateBookmarkButton(currentSurah, arabicAyahs[i].numberInSurah);
+        }
+
+        const playButton = document.createElement('button');
+        playButton.className = 'play-button';
+        playButton.innerHTML = '▶';
+        playButton.onclick = () => playAudio(audioAyahs[i].audio);
+        ayahDiv.appendChild(playButton);
+
+        contentContainer.appendChild(ayahDiv);
+      }
+
+      loadingIndicator.style.display = 'none';
+
+      if (fullScreen) {
+        updateFullScreenPageControls();
+      }
+    } catch (error) {
+      console.error('Error loading Quran content:', error);
+      loadingIndicator.style.display = 'none';
+      contentContainer.textContent = 'Error loading content. ' + error.message;
+    }
+  }
+
+  async function updateBookmarkButton(surah, ayah) {
+    if (!currentProfile) {
+      console.warn('No profile selected. Skipping bookmark update.');
+      return;
+    }
+    
+    const bookmarkKey = `${surah}:${ayah}`;
+    const bookmarks = await db.get('bookmarks', currentProfile.name) || [];
+    const button = document.querySelector(`.bookmark-button[data-key="${bookmarkKey}"]`);
+    
+    if (button) {
+      button.classList.toggle('active', bookmarks.some(b => b.key === bookmarkKey));
+    }
+  }
+
+  function createBookmarkButton(surah, ayah) {
+    const button = document.createElement('button');
+    button.className = 'bookmark-button';
+    button.innerHTML = '<i class="fas fa-bookmark"></i>';
+    button.onclick = () => toggleBookmark(surah, ayah);
+    return button;
+  }
+
+  async function toggleBookmark(surah, ayah) {
+    const bookmarkKey = `${surah}:${ayah}`;
+    let bookmarks = await db.get('bookmarks', currentProfile.name) || [];
+    const index = bookmarks.findIndex(b => b.key === bookmarkKey);
+    
+    if (index === -1) {
+      bookmarks.push({ key: bookmarkKey, surah, ayah });
+    } else {
+      bookmarks.splice(index, 1);
+    }
+    
+    await db.put('bookmarks', bookmarks, currentProfile.name);
+    updateBookmarkButton(surah, ayah);
+  }
+
+  async function displayBookmarks() {
+    const bookmarks = await db.get('bookmarks', currentProfile.name) || [];
+    bookmarksList.innerHTML = '';
+
+    for (const bookmark of bookmarks) {
+      const bookmarkDiv = document.createElement('div');
+      bookmarkDiv.className = 'bookmark-item';
+      bookmarkDiv.textContent = `Surah ${bookmark.surah}, Ayah ${bookmark.ayah}`;
+      bookmarkDiv.onclick = () => {
+        selectSurah(bookmark.surah);
+        bookmarksModal.style.display = 'none';
+      };
+      bookmarksList.appendChild(bookmarkDiv);
+    }
+  }
+
+  bookmarksButton.onclick = () => {
+    bookmarksModal.style.display = 'block';
+    displayBookmarks();
+  };
+
+  async function downloadAllSurahs() {
+    try {
+      downloadButton.disabled = true;
+      downloadButton.textContent = 'Downloading...';
+      loadingIndicator.style.display = 'block';
+
+      const totalSurahs = 114;
+      let downloadedSurahs = 0;
+
+      for (let surahNumber = 1; surahNumber <= totalSurahs; surahNumber++) {
+        const [arabicResponse, englishResponse, pashtoResponse, audioResponse] = await Promise.all([
+          axios.get(`https://api.alquran.cloud/v1/surah/${surahNumber}`),
+          axios.get(`https://api.alquran.cloud/v1/surah/${surahNumber}/en.asad`),
+          axios.get(`https://api.alquran.cloud/v1/surah/${surahNumber}/ps.abdulwali`),
+          axios.get(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`)
+        ]);
+
+        const arabicAyahs = arabicResponse.data.data.ayahs;
+        const englishAyahs = englishResponse.data.data.ayahs;
+        const pashtoAyahs = pashtoResponse.data.data.ayahs;
+        const audioAyahs = audioResponse.data.data.ayahs;
+
+        await db.put('translations', { arabic: arabicAyahs, english: englishAyahs, pashto: pashtoAyahs, audio: audioAyahs }, `surah_${surahNumber}`);
+
+        downloadedSurahs++;
+        updateDownloadProgress(downloadedSurahs, totalSurahs);
+      }
+
+      downloadButton.textContent = 'Download Complete';
+      setTimeout(() => {
+        downloadButton.textContent = 'Download Offline';
+        downloadButton.disabled = false;
+      }, 3000);
+
+      loadingIndicator.style.display = 'none';
+      updateOfflineStatus();
+    } catch (error) {
+      console.error('Error downloading surahs:', error);
+      downloadButton.textContent = 'Download Failed';
+      downloadButton.disabled = false;
+      loadingIndicator.style.display = 'none';
+      alert('Error downloading surahs. Please try again.');
+    }
+  }
+
+  function updateDownloadProgress(downloaded, total) {
+    const progress = Math.round((downloaded / total) * 100);
+    downloadButton.textContent = `Downloading... ${progress}%`;
+    loadingIndicator.textContent = `Downloaded ${downloaded} of ${total} surahs`;
+  }
+
+  downloadButton.onclick = downloadAllSurahs;
+
+  async function downloadSurahAudio(surahNumber) {
+    try {
+      loadingIndicator.style.display = 'block';
+      downloadAudioButton.disabled = true;
+      downloadAudioButton.textContent = 'Downloading...';
+
+      const response = await axios.get(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`);
+      const audioAyahs = response.data.data.ayahs;
+
+      const zip = new JSZip();
+      const folder = zip.folder(`surah_${surahNumber}_audio`);
+
+      for (let i = 0; i < audioAyahs.length; i++) {
+        const audioUrl = audioAyahs[i].audio;
+        const audioResponse = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+        folder.file(`ayah_${i + 1}.mp3`, audioResponse.data);
+      }
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `surah_${surahNumber}_audio.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+      loadingIndicator.style.display = 'none';
+      downloadAudioButton.disabled = false;
+      downloadAudioButton.textContent = 'Download Surah Audio';
+    } catch (error) {
+      console.error('Error downloading surah audio:', error);
+      loadingIndicator.style.display = 'none';
+      downloadAudioButton.disabled = false;
+      downloadAudioButton.textContent = 'Download Surah Audio';
+      alert('Error downloading surah audio. Please try again.');
+    }
+  }
+
+  function playAudio(audioUrl) {
+    if (audioPlayer.src !== audioUrl) {
+      audioPlayer.src = audioUrl;
+    }
+    
+    const playPromise = audioPlayer.play();
+
+    if (playPromise !== undefined) {
+      playPromise.then(_ => {
+      }).catch(error => {
+        console.log("Playback was prevented or there was an error:", error);
+      });
+    }
+
+    audioPlayer.removeEventListener('ended', playNextAyah);
+
+    audioPlayer.addEventListener('ended', function stopAfterAyah() {
+      audioPlayer.removeEventListener('ended', stopAfterAyah);
+    }, { once: true });
+  }
+
+  function playEntireSurah() {
+    if (audioQueue.length === 0) {
+      alert('Please load a surah first');
+      return;
+    }
+
+    currentAudioIndex = 0;
+    playNextAyah();
+  }
+
+  function playNextAyah() {
+    if (currentAudioIndex < audioQueue.length) {
+      const audioUrl = audioQueue[currentAudioIndex];
+      playAudio(audioUrl);
+      currentAudioIndex++;
+    } else {
+      playSurahButton.textContent = 'Play Entire Surah';
+    }
+  }
+
+  playSurahButton.addEventListener('click', () => {
+    if (audioPlayer.paused) {
+      playEntireSurah();
+      playSurahButton.textContent = 'Pause Surah';
+    } else {
+      audioPlayer.pause();
+      playSurahButton.textContent = 'Resume Surah';
+    }
+  });
+
+  audioPlayer.addEventListener('ended', function() {
+    if (currentAudioIndex < audioQueue.length) {
+      setTimeout(playNextAyah, 100);
+    } else {
+      playSurahButton.textContent = 'Play Entire Surah';
+    }
+  });
+
+  audioPlayer.addEventListener('loadedmetadata', () => {
+    audioPlayer.controlsList = "nodownload noplaybackrate";
+  });
+
+  function updateFullScreenPageControls() {
+    fullScreenPrevPage.disabled = currentPage === 1;
+    fullScreenNextPage.disabled = currentPage === totalPages;
+  }
+
+  searchButton.onclick = () => searchModal.style.display = 'block';
+
+  searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      performSearch();
+    }
+  });
+
+  async function performSearch() {
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    if (searchTerm === '') return;
+
+    searchResults.innerHTML = '';
+    loadingIndicator.style.display = 'block';
+
+    try {
+      const allSurahs = await db.get('surahs', 'list');
+      const results = [];
+
+      for (const surah of allSurahs) {
+        const translations = await db.get('translations', `surah_${surah.number}`);
+        if (!translations) continue;
+
+        for (let i = 0; i < translations.arabic.length; i++) {
+          const arabicText = translations.arabic[i].text.toLowerCase();
+          const englishText = translations.english[i].text.toLowerCase();
+          const pashtoText = translations.pashto[i].text.toLowerCase();
+
+          if (arabicText.includes(searchTerm) || englishText.includes(searchTerm) || pashtoText.includes(searchTerm)) {
+            results.push({
+              surah: surah.number,
+              ayah: translations.arabic[i].numberInSurah,
+              arabic: translations.arabic[i].text,
+              english: translations.english[i].text,
+              pashto: translations.pashto[i].text
+            });
+          }
+        }
+      }
+
+      displaySearchResults(results);
+    } catch (error) {
+      console.error('Error performing search:', error);
+      searchResults.textContent = 'Error performing search. Please try again.';
+    } finally {
+      loadingIndicator.style.display = 'none';
+    }
+  }
+
+  function displaySearchResults(results) {
+    if (results.length === 0) {
+      searchResults.textContent = 'No results found.';
+      return;
+    }
+
+    results.forEach(result => {
+      const resultDiv = document.createElement('div');
+      resultDiv.className = 'search-result';
+
+      resultDiv.innerHTML = `
+        <div>Surah ${result.surah}, Ayah ${result.ayah}</div>
+        <div class="search-result-text ayah-text">${result.arabic}</div>
+        <div class="search-result-translation english-translation">${result.english}</div>
+        <div class="search-result-translation pashto-translation">${result.pashto}</div>
+      `;
+
+      resultDiv.addEventListener('click', () => {
+        selectSurah(result.surah);
+        searchModal.style.display = 'none';
+      });
+
+      searchResults.appendChild(resultDiv);
+    });
+  }
+
+  settingsButton.onclick = () => settingsModal.style.display = 'block';
+  prophetInfoButton.onclick = () => prophetInfoModal.style.display = 'block';
+  surahButton.onclick = () => surahModal.style.display = 'block';
+  juzButton.onclick = () => {
+    juzModal.style.display = 'block';
+    loadJuzInfo();
+  };
+
+  homeButton.addEventListener('click', () => {
+    fullScreenSurah.style.display = 'none';
+    document.querySelector('.quran-app').style.display = 'block';
+  });
+
+  fullScreenPrevPage.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      loadQuranContent(true);
+    }
+  });
+
+  fullScreenNextPage.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      loadQuranContent(true);
+    }
+  });
+
+  window.addEventListener('online', updateOfflineStatus);
+  window.addEventListener('offline', updateOfflineStatus);
+
+  async function init() {
+    await initDB();
+    await loadProfiles();
+    await loadSurahs();
+    await loadJuzInfo();
+    updateOfflineStatus();
+    hideSplashScreen();
+
+    fullScreenSurah.style.display = 'none';
+
+    const viewport = document.querySelector('meta[name=viewport]');
+    const scale = 1 / window.devicePixelRatio;
+    viewport.setAttribute('content', `width=device-width, initial-scale=${scale}, maximum-scale=${scale}, user-scalable=no`);
+
+    if (!currentProfile) {
+      profileModal.style.display = 'block';
+    }
+  }
+
+  function hideSplashScreen() {
+    const splashScreen = document.getElementById('splashScreen');
+    setTimeout(() => {
+      splashScreen.style.opacity = '0';
+      setTimeout(() => {
+        splashScreen.style.display = 'none';
+        if (!currentProfile) {
+          profileModal.style.display = 'block';
+        }
+      }, 500);
+    }, 3000);
+  }
+
+  function updateOfflineStatus() {
+    if (navigator.onLine) {
+      offlineStatusDiv.textContent = 'You are online. Download the Quran for offline use.';
+      downloadButton.style.display = 'block';
+    } else {
+      offlineStatusDiv.textContent = 'You are offline. Stored content is available.';
+      downloadButton.style.display = 'none';
+    }
+  }
+
+  themeSelect.addEventListener('change', (e) => {
+    applyTheme(e.target.value);
+  });
+
+  fontSizeSelect.addEventListener('change', (e) => {
+    applyFontSize(e.target.value);
+  });
+
+  arabicFontSizeSelect.addEventListener('change', (e) => {
+    applyArabicFontSize(e.target.value);
+  });
+
+  function applyTheme(theme) {
+    document.body.className = `theme-${theme}`;
+    if (currentProfile) {
+      currentProfile.settings.theme = theme;
+      db.put('profiles', currentProfile, currentProfile.name);
+    }
+  }
+
+  function applyFontSize(size) {
+    document.body.classList.remove('font-small', 'font-medium', 'font-large');
+    document.body.classList.add(`font-${size}`);
+    if (currentProfile) {
+      currentProfile.settings.fontSize = size;
+      db.put('profiles', currentProfile, currentProfile.name);
+    }
+  }
+
+  function applyArabicFontSize(size) {
+    document.body.classList.remove('arabic-font-small', 'arabic-font-medium', 'arabic-font-large');
+    document.body.classList.add(`arabic-font-${size}`);
+    if (currentProfile) {
+      currentProfile.settings.arabicFontSize = size;
+      db.put('profiles', currentProfile, currentProfile.name);
+    }
+  }
+
+  toggleToolbarBtn.addEventListener('click', toggleToolbar);
+
+  function toggleToolbar() {
+    toolbar.classList.toggle('visible');
+    if (toolbar.classList.contains('visible')) {
+      toggleToolbarBtn.innerHTML = '&times;';
+      document.body.style.overflow = 'hidden';
+    } else {
+      toggleToolbarBtn.innerHTML = '<i class="fas fa-bars"></i>';
+      document.body.style.overflow = '';
+    }
+  }
+
+  document.addEventListener('touchstart', handleTouchStart);
+  document.addEventListener('touchmove', handleTouchMove);
+
+  let xDown = null;
+  let yDown = null;
+
+  function handleTouchStart(evt) {
+    xDown = evt.touches[0].clientX;
+    yDown = evt.touches[0].clientY;
+  }
+
+  function handleTouchMove(evt) {
+    if (!xDown || !yDown) {
+      return;
+    }
+
+    const xUp = evt.touches[0].clientX;
+    const yUp = evt.touches[0].clientY;
+
+    const xDiff = xDown - xUp;
+    const yDiff = yDown - yUp;
+
+    if (Math.abs(xDiff) > Math.abs(yDiff)) {
+      if (xDiff > 0) {
+        if (currentPage < totalPages) {
+          currentPage++;
+          loadQuranContent();
+        }
+      } else {
+        if (currentPage > 1) {
+          currentPage--;
+          loadQuranContent();
+        }
+      }
+    }
+
+    xDown = null;
+    yDown = null;
+  }
+
+  init();
+</script>
+</body></html>
